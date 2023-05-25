@@ -6,30 +6,31 @@ import (
 	"time"
 )
 
-func Number(description string, number int, wg *sync.WaitGroup, startChan chan bool) {
-	for i := 1; i < 10; i++ {
-		fmt.Printf("the %s is running at %d, on: %d\n", description, number, i)
-		time.Sleep(2 * time.Second)
-
-		startChan <- true
+func Thread(stage string, wg *sync.WaitGroup, ch chan int) {
+	for i := 0; i < 10; i++ {
+		fmt.Printf("Thread %s times:%d\n", stage, i)
+		time.Sleep(1 * time.Second)
 		wg.Done()
+		ch <- i
 	}
+	close(ch)
+	wg.Wait()
 }
 
 func main() {
 	waitgroup := sync.WaitGroup{}
-	waitgroup.Add(25)
+	waitgroup.Add(10)
+	ch := make(chan int)
 
-	startChan := make(chan bool)
+	go Thread("A", &waitgroup, ch)
 
-	go Number("A", 1, &waitgroup, startChan)
+	for i := 0; 1 < 10; i++ {
+		fmt.Printf("thrand anonymous running now on %d\n", i)
+		time.Sleep(1 * time.Second)
+		waitgroup.Done()
 
-	<-startChan
-	go func() {
-		for i := 9; i < 21; i++ {
-			fmt.Printf("the func anonymous %d is running Now!\n", i)
-			waitgroup.Done()
-		}
-	}()
+	}
+	close(ch)
+
 	waitgroup.Wait()
 }

@@ -2,24 +2,30 @@ package main
 
 import (
 	"fmt"
+	"sync"
 	"time"
 )
 
-func task(name string) {
-	for i := 0; i < 5; i++ {
-		fmt.Printf("%d task %s is running\n", i, name)
-		time.Sleep(time.Second * 1)
+func Number(description string, number int, wg *sync.WaitGroup) {
+	for i := 1; i < 10; i++ {
+		fmt.Printf("the %s is running at %d, on: %d\n", description, number, i)
+		time.Sleep(2 * time.Second)
+
+		wg.Done()
 	}
 }
 
 func main() {
-	go task("A")
-	go task("B")
+	waitgroup := sync.WaitGroup{}
+	waitgroup.Add(25)
+
+	go Number("A", 1, &waitgroup)
+
 	go func() {
-		for i := 0; i < 10; i++ {
-			fmt.Printf("func anonymous %d, is running now\n", i)
-			time.Sleep(1 * time.Second)
+		for i := 9; i < 21; i++ {
+			fmt.Printf("the func anonymous %d is running Now!\n", i)
+			waitgroup.Done()
 		}
 	}()
-	time.Sleep(5 * time.Second)
+	waitgroup.Wait()
 }
